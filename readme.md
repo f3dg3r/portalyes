@@ -1,5 +1,5 @@
 # 1. Зайти в папку
-cd portal
+cd portalyes
 
 # 2. Запустить сервер
 npm start
