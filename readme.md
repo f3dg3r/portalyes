@@ -11,3 +11,6 @@ http://localhost:3000
 npm install
 npm init -y
 npm install express sqlite3 bcrypt express-session
+
+4. Данные администратора:
+Логин: Admin26 Пароль: Demo20
