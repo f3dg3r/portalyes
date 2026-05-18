@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Бронирование - Конференции.РФ</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="container">
+    <h2>Бронирование помещения</h2>
+    <form id="createForm">
+        <select name="room" required>
+            <option value="">Выберите помещение</option>
+            <option>Аудитория</option>
+            <option>Коворкинг</option>
+            <option>Кинозал</option>
+        </select>
+        <input type="text" name="start_date" placeholder="Дата начала (ДД.ММ.ГГГГ)" required>
+        <select name="payment_method" required>
+            <option value="">Способ оплаты</option>
+            <option value="cash">Наличными</option>
+            <option value="card">Банковская карта</option>
+            <option value="transfer">Перевод по номеру телефона</option>
+        </select>
+        <div id="message"></div>
+        <button type="submit">Отправить заявку</button>
+    </form>
+    <a href="/home">Назад</a>
+</div>
+<script>
+    const form = document.getElementById('createForm');
+    const msg = document.getElementById('message');
+    form.onsubmit = async (e) => {
+        e.preventDefault();
+        const data = {
+            room: form.room.value,
+            start_date: form.start_date.value,
+            payment_method: form.payment_method.value
+        };
+        msg.innerText = 'Отправка...';
+        msg.style.color = '#2563eb';
+        const res = await fetch('/api/requests', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        const result = await res.json();
+        if (result.success) {
+            msg.style.color = 'green';
+            msg.innerText = 'Заявка создана! Перенаправление...';
+            setTimeout(() => window.location.href = '/my-requests', 1000);
+        } else {
+            msg.style.color = 'red';
+            msg.innerText = 'Ошибка: ' + (result.error || 'Неизвестная ошибка');
+        }
+    };
+</script>
+</body>
+</html>

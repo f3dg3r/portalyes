@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панель администратора - Конференции.РФ</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="container admin">
+    <h2>Панель администратора</h2>
+    <select id="statusFilter">
+        <option value="all">Все статусы</option>
+        <option value="new">Новая</option>
+        <option value="assigned">Мероприятие назначено</option>
+        <option value="completed">Мероприятие завершено</option>
+    </select>
+    <div id="table"></div>
+    <div id="pagination"></div>
+    <a href="/home">Выйти</a>
+</div>
+<script>
+    let page = 1;
+    let status = 'all';
+    async function load() {
+        const res = await fetch(`/api/admin/requests?page=${page}&limit=5&status=${status}`);
+        const data = await res.json();
+        let html = '<table class="admin-table">';
+        html += '<tr><th>ID</th><th>Пользователь</th><th>Помещение</th><th>Дата</th><th>Оплата</th><th>Статус</th><th>Действие</th></tr>';
+        for (let r of data.requests) {
+            html += `
+                <tr>
+                    <td>${r.id}</td>
+                    <td>${r.full_name}</td>
+                    <td>${r.room}</td>
+                    <td>${r.start_date}</td>
+                    <td>${r.payment_method === 'cash' ? 'Наличные' : r.payment_method === 'card' ? 'Карта' : 'Перевод'}</td>
+                    <td>${r.status === 'new' ? 'Новая' : r.status === 'assigned' ? 'Назначено' : 'Завершено'}</td>
+                    <td>
+                        <select onchange="updateStatus(${r.id}, this.value)">
+                            <option ${r.status === 'new' ? 'selected' : ''} value="new">Новая</option>
+                            <option ${r.status === 'assigned' ? 'selected' : ''} value="assigned">Мероприятие назначено</option>
+                            <option ${r.status === 'completed' ? 'selected' : ''} value="completed">Мероприятие завершено</option>
+                        </select>
+                    </td>
+                </tr>
+            `;
+        }
+        html += '</table>';
+        document.getElementById('table').innerHTML = html;
+        let pages = '';
+        for (let i = 1; i <= Math.ceil(data.total / 5); i++) {
+            pages += `<button onclick="goPage(${i})">${i}</button>`;
+        }
+        document.getElementById('pagination').innerHTML = pages;
+    }
+    window.updateStatus = async (id, newStatus) => {
+        const res = await fetch(`/api/admin/requests/${id}/status`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: newStatus })
+        });
+        const data = await res.json();
+        if (data.success) {
+            alert('Статус обновлён');
+            load();
+        } else {
+            alert('Ошибка: ' + data.error);
+        }
+    };
+    window.goPage = (p) => { page = p; load(); };
+    document.getElementById('statusFilter').onchange = () => {
+        status = document.getElementById('statusFilter').value;
+        page = 1;
+        load();
+    };
+    load();
+</script>
+</body>
+</html>

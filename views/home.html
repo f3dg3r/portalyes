@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Личный кабинет - Конференции.РФ</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="container">
+    <div class="site-info">
+        <h1>Конференции.РФ</h1>
+    </div>
+    <h2>Добро пожаловать, <span id="userName"></span>!</h2>
+    
+    <div class="slider">
+        <div class="slides">
+            <img src="https://picsum.photos/id/20/390/200" alt="Конференция">
+            <img src="https://picsum.photos/id/26/390/200" alt="Зал">
+            <img src="https://picsum.photos/id/28/390/200" alt="Аудитория">
+            <img src="https://picsum.photos/id/88/390/200" alt="Коворкинг">
+        </div>
+        <button class="prev" onclick="changeSlide(-1)">❮</button>
+        <button class="next" onclick="changeSlide(1)">❯</button>
+    </div>
+
+    <div class="menu">
+        <a href="/create">Забронировать помещение</a>
+        <a href="/my-requests">Мои заявки</a>
+        <a href="#" id="logoutBtn">Выйти</a>
+    </div>
+</div>
+<script>
+    let slideIndex = 0;
+    const slides = document.querySelector('.slides');
+    const total = document.querySelectorAll('.slides img').length;
+    function showSlide() { slides.style.transform = `translateX(-${slideIndex * 100}%)`; }
+    window.changeSlide = (n) => { slideIndex = (slideIndex + n + total) % total; showSlide(); };
+    setInterval(() => changeSlide(1), 3000);
+    showSlide();
+
+    fetch('/api/me').then(r => r.json()).then(data => {
+        if (data.user) document.getElementById('userName').innerText = data.user.full_name;
+    });
+    document.getElementById('logoutBtn').onclick = async () => {
+        await fetch('/api/logout', { method: 'POST' });
+        window.location.href = '/login';
+    };
+</script>
+</body>
+</html>

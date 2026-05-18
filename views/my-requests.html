@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мои заявки - Конференции.РФ</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="container">
+    <h2>Мои заявки</h2>
+    <div id="list">Загрузка...</div>
+    <a href="/home">Назад</a>
+</div>
+<script>
+    async function load() {
+        const res = await fetch('/api/my-requests');
+        const data = await res.json();
+        const container = document.getElementById('list');
+        if (!data.length) {
+            container.innerHTML = '<p>У вас пока нет заявок. <a href="/create">Забронировать</a></p>';
+            return;
+        }
+        let html = '';
+        for (let r of data) {
+            let statusText = '';
+            if (r.status === 'new') statusText = 'Новая';
+            else if (r.status === 'assigned') statusText = 'Мероприятие назначено';
+            else statusText = 'Мероприятие завершено';
+            html += `
+                <div class="request-card">
+                    <strong>${r.room}</strong><br>
+                    Дата: ${r.start_date}<br>
+                    Оплата: ${r.payment_method === 'cash' ? 'Наличные' : r.payment_method === 'card' ? 'Карта' : 'Перевод'}<br>
+                    Статус: ${statusText}<br>
+                    ${r.status === 'completed' ? (
+                        r.review ? `Отзыв: ${r.review}` :
+                        `<textarea id="rev-${r.id}" rows="2" placeholder="Ваш отзыв"></textarea>
+                         <button onclick="addReview(${r.id})">Оставить отзыв</button>`
+                    ) : ''}
+                </div>
+            `;
+        }
+        container.innerHTML = html;
+    }
+    window.addReview = async (id) => {
+        const review = document.getElementById(`rev-${id}`).value;
+        const res = await fetch(`/api/review/${id}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ review })
+        });
+        const data = await res.json();
+        if (data.success) {
+            alert('Отзыв сохранён');
+            load();
+        } else {
+            alert('Ошибка: ' + data.error);
+        }
+    };
+    load();
+</script>
+</body>
+</html>
